@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login & Signup</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+
+<body class="bg-light">
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="#">
+                <img src="logo.jpeg" alt="Logo" width="40" height="40" class="me-2">
+                <span class="fw-bold">Kadji Marketplace</span>
+            </a>
+            <div class="ms-auto">
+                <a href="/login" class="btn btn-outline-primary me-2">Sign In</a>
+                <a href="/register" class="btn btn-primary">Sign Up</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="d-flex justify-content-center align-items-center vh-100">
+        <div class="card p-4 shadow-lg" style="width: 350px;">
+            <h2 class="text-center mb-4">Welcome</h2>
+            <div id="success" class="alert alert-success hidden"></div>
+            <div id="error" class="alert alert-danger hidden"></div>
+
+            <!-- Login Form -->
+            <form id="login-form">
+                <div class="mb-3">
+                    <label for="username" class="form-label">Username</label>
+                    <input type="text" class="form-control" id="username" required>
+                </div>
+                <div class="mb-3">
+                    <label for="password" class="form-label">Password</label>
+                    <input type="password" class="form-control" id="password" required>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Login</button>
+                <p class="text-center mt-3">Don't have an account? <a href="/register">Sign up</a></p>
+            </form>
+
+            <!-- Signup Form -->
+            <form id="signup-form" class="hidden">
+                <div class="mb-3">
+                    <label for="usernameSignUP" class="form-label">Username</label>
+                    <input type="text" class="form-control" id="usernameSignUP" required>
+                </div>
+                <div class="mb-3">
+                    <label for="passwordSignUP" class="form-label">Password</label>
+                    <input type="password" class="form-control" id="passwordSignUP" required>
+                </div>
+                <button type="submit" class="btn btn-success w-100">Sign Up</button>
+                <p class="text-center mt-3">Already have an account? <a href="/login">Login</a></p>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function toggleForm(formType) {
+            document.getElementById("login-form").classList.toggle("hidden", formType !== 'login');
+            document.getElementById("signup-form").classList.toggle("hidden", formType !== 'signup');
+        }
+
+        function showMessage(type, message) {
+            const alertBox = document.getElementById(type);
+            alertBox.textContent = message;
+            alertBox.classList.remove("hidden");
+
+            setTimeout(() => alertBox.classList.add("hidden"), 3000);
+        }
+
+        async function submitLogin(event) {
+            event.preventDefault();
+            const username = document.getElementById("username").value;
+            const password = document.getElementById("password").value;
+
+            const body = JSON.stringify({ username, password });
+
+            const response = await fetch("/api/auth/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body
+            });
+
+            const data = await response.json();
+            if (response.ok) {
+                showMessage("success", "Login successful! Redirecting...");
+                localStorage.setItem("token", data.token);
+                setTimeout(() => window.location.href = "/dashboard", 2000);
+            } else {
+                showMessage("error", data.message || "Login failed");
+            }
+        }
+
+        async function submitSignup(event) {
+            event.preventDefault();
+            const username = document.getElementById("usernameSignUP").value;
+            const password = document.getElementById("passwordSignUP").value;
+
+            const body = JSON.stringify({ username, password });
+
+            const response = await fetch("/api/auth/register", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body
+            });
+
+            const data = await response.json();
+            if (response.ok) {
+                showMessage("success", "Registration successful! Redirecting...");
+                localStorage.setItem("token", data.token);
+                setTimeout(() => window.location.href = "/dashboard", 2000);
+            } else {
+                showMessage("error", data.message || "Registration failed");
+            }
+        }
+
+        document.getElementById("login-form").addEventListener("submit", submitLogin);
+        document.getElementById("signup-form").addEventListener("submit", submitSignup);
+
+        window.onload = () => {
+            toggleForm(window.location.pathname === "/register" ? "signup" : "login");
+        };
+    </script>
+
+</body>
+
+</html>
